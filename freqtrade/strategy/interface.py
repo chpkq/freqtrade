@@ -1571,14 +1571,14 @@ class IStrategy(ABC, HyperStrategyMixin):
 
         if self.trailing_stop and dir_correct:
             # trailing stoploss handling
-            sl_offset = self.trailing_stop_positive_offset
+            sl_offset = self.trailing_stop_positive_offset * trade.leverage
             # Make sure current_profit is calculated using high for backtesting.
 
             # Don't update stoploss if trailing_only_offset_is_reached is true.
             if not (self.trailing_only_offset_is_reached and bound_profit < sl_offset):
                 # Specific handling for trailing_stop_positive
                 if self.trailing_stop_positive is not None and bound_profit > sl_offset:
-                    stop_loss_value = self.trailing_stop_positive
+                    stop_loss_value = self.trailing_stop_positive * trade.leverage
                     logger.debug(
                         f"{trade.pair} - Using positive stoploss: {stop_loss_value} "
                         f"offset: {sl_offset:.4g} profit: {bound_profit:.2%}"
@@ -1689,7 +1689,7 @@ class IStrategy(ABC, HyperStrategyMixin):
         if custom_roi is not None and (min_roi is None or custom_roi < min_roi):
             return trade_dur, custom_roi
         else:
-            return roi_entry, min_roi
+            return roi_entry, min_roi * trade.leverage
 
     def min_roi_reached(self, trade: Trade, current_profit: float, current_time: datetime) -> bool:
         """
@@ -1762,6 +1762,7 @@ class IStrategy(ABC, HyperStrategyMixin):
 
         dataframe = self.advise_entry(dataframe, metadata)
         dataframe = self.advise_exit(dataframe, metadata)
+        # dataframe.to_csv('user_data/dataframe.csv')
         return dataframe
 
     def _if_enabled_populate_trades(self, dataframe: DataFrame, metadata: dict) -> DataFrame:

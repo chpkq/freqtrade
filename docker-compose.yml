@@ -1,7 +1,7 @@
 ---
 services:
   freqtrade:
-    image: freqtradeorg/freqtrade:stable
+    image: freqtrade
     # image: freqtradeorg/freqtrade:develop
     # Use plotting image
     # image: freqtradeorg/freqtrade:develop_plot
@@ -33,4 +33,11 @@ services:
       --logfile /freqtrade/user_data/logs/freqtrade.log
       --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
       --config /freqtrade/user_data/config.json
-      --strategy SampleStrategy
+      --strategy-path user_data/strategies/freqtrade-strategies/strategies/TheForce
+      --strategy TheForce
+#    command: >
+#      webserver
+#      --config /freqtrade/user_data/config.json
+#    command: >
+#      download-data
+#      --days 60
