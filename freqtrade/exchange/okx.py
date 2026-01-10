@@ -14,7 +14,6 @@ from freqtrade.exceptions import (
 from freqtrade.exchange import Exchange
 from freqtrade.exchange.common import API_RETRY_COUNT, retrier
 from freqtrade.exchange.exchange_types import CcxtOrder, FtHas
-from freqtrade.misc import safe_value_fallback2
 from freqtrade.util import dt_now, dt_ts
 
 
@@ -29,10 +28,9 @@ class Okx(Exchange):
 
     _ft_has: FtHas = {
         "ohlcv_candle_limit": 100,  # Warning, special case with data prior to X months
-        "mark_ohlcv_timeframe": "4h",
-        "funding_fee_timeframe": "8h",
         "stoploss_order_types": {"limit": "limit"},
         "stoploss_on_exchange": True,
+        "stoploss_query_requires_stop_flag": True,
         "trades_has_history": False,  # Endpoint doesn't have a "since" parameter
         "ws_enabled": True,
     }
@@ -259,21 +257,6 @@ class Okx(Exchange):
             except ccxt.BaseError as e:
                 raise OperationalException(e) from e
         raise RetryableOrderError(f"StoplossOrder not found (pair: {pair} id: {order_id}).")
-
-    def get_order_id_conditional(self, order: CcxtOrder) -> str:
-        if order.get("type", "") == "stop":
-            return safe_value_fallback2(order, order, "id_stop", "id")
-        return order["id"]
-
-    def cancel_stoploss_order(self, order_id: str, pair: str, params: dict | None = None) -> dict:
-        params1 = {"stop": True}
-        # 'ordType': 'conditional'
-        #
-        return self.cancel_order(
-            order_id=order_id,
-            pair=pair,
-            params=params1,
-        )
 
     def _fetch_orders_emulate(self, pair: str, since_ms: int) -> list[CcxtOrder]:
         orders = []
